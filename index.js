@@ -156,10 +156,10 @@ app.post("/", (req, res) => {
   if (req.body.port == 2) {
     console.log("it's data, lets save it to a file");
 
-    // fs.appendFile("./rawdata.dat", bufferObj.toString("hex") + "\n", (err) => {
-    //   if (err) return console.log(err);
-    //   console.log("Saving Data");
-    // });
+    fs.appendFile("./rawdata.dat", bufferObj.toString("hex") + "\n", (err) => {
+      if (err) return console.log(err);
+      console.log("Saving Data");
+    });
   } else if (req.body.port == 3) {
     console.log("it's status report");
     const batt = bufferObj.readUInt16BE();
