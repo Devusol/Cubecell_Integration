@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+const http = require("http");
+const socketIO = require("socket.io");
 const cors = require("cors");
 const axios = require("axios");
 const path = require("path");
@@ -9,10 +11,27 @@ const port = 8080 || process.env.port;
 const elapsedMax = 18;
 const downlinkURL =
   "https://console.helium.com/api/v1/down/67d97e64-2cbd-42b5-b11f-e5e4f99e2eed/dAdVXsOqN4P_P4EaKXSu3CbkQk1zLpeg/2d635b83-c1a8-48fa-a334-60a251c00697";
-let count = 0;
-let timerec = Date.now();
-let sendString = "status";
-let clearHeliumDownlink = "__clear_downlink_queue__";
+let server,
+  io,
+  count = 0,
+  timerec = Date.now(),
+  sendString = "status",
+  clearHeliumDownlink = "__clear_downlink_queue__";
+
+server = http.Server(app);
+server.listen(port);
+
+io = socketIO(server);
+
+io.on("connection", function (socket) {
+  console.log("user connected");
+  socket.emit("greeting-from-server", {
+    greeting: "Waiting for data..."
+  });
+  socket.on("greeting-from-client", function (message) {
+    console.log(message);
+  });
+});
 
 app.set(express.static(path.join(__dirname, "/public")));
 
@@ -22,36 +41,15 @@ app.set("views", path.join(__dirname, "/views"));
 app.use(express.json());
 app.use(cors());
 
-app.post("/", function (req, res) {
-  console.log(req.body.port);
-  const bufferObj = Buffer.from(req.body.payload, "base64");
-  console.log(bufferObj);
-  if (req.body.port == 2) {
-    console.log("it's data, lets save it to a file");
+app.get("/params", (req, res) => {
+  const { paramsData } = req.params;
+  console.log("here");
+  res.render("ui.ejs", { paramsData });
+});
 
-    fs.appendFile("./rawdata.dat", bufferObj.toString("hex") + "\n", (err) => {
-      if (err) return console.log(err);
-      console.log("Saving Data");
-    });
-  } else if (req.body.port == 3) {
-    console.log("it's status report");
-    const batt = bufferObj.readUInt16BE();
-    const sysTime = bufferObj.readUInt32BE(2);
-    const degF = bufferObj.readUInt8(6);
-    console.log(
-      `Battery Level: ${batt} System Time: ${Date(sysTime).toLocaleString(
-        "en-US",
-        {
-          timeZone: "America/New_York"
-        }
-      )} System Temp: ${degF}`
-    );
-  } else if (req.body.port == 4) {
-    console.log("it's live data");
-  } else {
-    console.log("not sure what it is");
-    console.log(req.body.port);
-  }
+app.post("/live", function (req, res) {
+  console.log(req.body.payload);
+  res.redirect("/params?" + req.body.payload);
 
   // timerec = Math.round(Date.now() / 1000);
   // console.log(timerec);
@@ -104,7 +102,7 @@ app.post("/", function (req, res) {
   //   );
   // }
   // count++;
-  timerec = Date.now();
+  // timerec = Date.now();
   //console.log(req.body.payload);
   //.toString());
 
@@ -151,24 +149,51 @@ app.post("/set", (req, res) => {
     });
 });
 
-app.post("/live", (req, res) => {
-  console.log("get status route");
-  axios
-    .post(downlinkURL, {
-      payload_raw: base64data,
-      port: 11,
-      confirmed: false
-    })
-    .then(function (response) {
-      console.log(response);
-      res.send(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
+app.post("/", (req, res) => {
+  console.log(req.body.port);
+  const bufferObj = Buffer.from(req.body.payload, "base64");
+  console.log(bufferObj);
+  if (req.body.port == 2) {
+    console.log("it's data, lets save it to a file");
+
+    // fs.appendFile("./rawdata.dat", bufferObj.toString("hex") + "\n", (err) => {
+    //   if (err) return console.log(err);
+    //   console.log("Saving Data");
+    // });
+  } else if (req.body.port == 3) {
+    console.log("it's status report");
+    const batt = bufferObj.readUInt16BE();
+    const sysTime = bufferObj.readUInt32BE(2);
+    const degF = bufferObj.readUInt8(6);
+    let paramsData = `Battery Level: ${batt} System Time: ${Date(
+      sysTime
+    ).toLocaleString("en-US", {
+      timeZone: "America/New_York"
+    })} System Temp: ${degF}`;
+    io.emit("greeting-from-server", {
+      greeting: paramsData
     });
+    return res.send("heard you");
+    // console.log(
+    //   `Battery Level: ${batt} System Time: ${Date(sysTime).toLocaleString(
+    //     "en-US",
+    //     {
+    //       timeZone: "America/New_York"
+    //     }
+    //   )} System Temp: ${degF}`
+    // );
+    // console.log("rendering");
+    // res.render("ui.ejs", { paramsData });
+  } else if (req.body.port == 4) {
+    console.log("it's live data");
+  } else {
+    console.log("not sure what it is");
+    console.log(req.body.port);
+  }
 });
 
 app.get("/", (req, res) => {
+  console.log(req.query);
   // timerec = Math.round(Date.now() / 1000);
   // console.log(timerec);
   // let buff = Buffer.alloc(4);
@@ -197,9 +222,10 @@ app.get("/", (req, res) => {
   res.render("ui.ejs", { paramsData: 2 });
 });
 
-app.listen(port, () => {
-  console.log(`Beach Former app listening on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Beach Former app listening on port ${port}`);
+// });
+// server.listen(3000);
 
 const parseRawData = () => {
   fs.readFile("./rawdata.dat", "utf8", (err, data) => {
