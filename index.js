@@ -5,7 +5,7 @@ const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
 const ejs = require("ejs");
-const port = 8080;
+const port = 8080 || process.env.port;
 const elapsedMax = 18;
 const downlinkURL =
   "https://console.helium.com/api/v1/down/67d97e64-2cbd-42b5-b11f-e5e4f99e2eed/dAdVXsOqN4P_P4EaKXSu3CbkQk1zLpeg/2d635b83-c1a8-48fa-a334-60a251c00697";
@@ -13,6 +13,11 @@ let count = 0;
 let timerec = Date.now();
 let sendString = "status";
 let clearHeliumDownlink = "__clear_downlink_queue__";
+
+app.set(express.static(path.join(__dirname, "/public")));
+
+app.set("view engine", ejs);
+app.set("views", path.join(__dirname, "/views"));
 
 app.use(express.json());
 app.use(cors());
@@ -179,7 +184,7 @@ app.get("/", (req, res) => {
     if (err) return console.log(err);
     console.log("Saving Data");
   });
-  parseRawData();
+  //parseRawData();
   console.log(buffStore);
   let saveIt = buff.join(",");
   console.log(saveIt);
@@ -189,11 +194,11 @@ app.get("/", (req, res) => {
   // // console.log(
   //   `buffBattery Level: ${batt} System Time: ${sysTime} System Temp: ${degF}`
   // );
-  res.sendFile(path.join(__dirname, "/ui.html"));
+  res.render("ui.ejs", { paramsData: 2 });
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Beach Former app listening on port ${port}`);
 });
 
 const parseRawData = () => {
