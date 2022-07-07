@@ -33,11 +33,11 @@ io.on("connection", function (socket) {
   });
 });
 
-app.set(express.static(path.join(__dirname, "/public")));
 
 app.set("view engine", ejs);
-app.set("views", path.join(__dirname, "/views"));
+app.set("views", path.join(__dirname, "views"));
 
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(cors());
 
@@ -219,13 +219,8 @@ app.get("/", (req, res) => {
   // // console.log(
   //   `buffBattery Level: ${batt} System Time: ${sysTime} System Temp: ${degF}`
   // );
-  res.render("ui.ejs", { paramsData: 2 });
+  res.render("index.ejs");
 });
-
-// app.listen(port, () => {
-//   console.log(`Beach Former app listening on port ${port}`);
-// });
-// server.listen(3000);
 
 const parseRawData = () => {
   fs.readFile("./rawdata.dat", "utf8", (err, data) => {
