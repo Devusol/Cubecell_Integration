@@ -222,6 +222,66 @@ app.get("/", (req, res) => {
   res.render("index.ejs");
 });
 
+app.get("/index", (req, res) => {
+  console.log(req.query);
+  // timerec = Math.round(Date.now() / 1000);
+  // console.log(timerec);
+  // let buff = Buffer.alloc(4);
+  // buff.writeUInt32BE(timerec + 7);
+  // let base64data = buff.toString("base64");
+  // let t = 1656857613;
+  // let tBuf = Buffer.alloc(4);
+  // tBuf.writeUInt32BE(t);
+  // console.log(tBuf);
+  let buff = Buffer.from([0x10, 0x66, 0x0d, 0xa4, 0xc1, 0x62, 0x21, 0xff]);
+  let buffStore = buff.toString("hex");
+  fs.appendFile("./rawdata.dat", buffStore + "\n", (err) => {
+    if (err) return console.log(err);
+    console.log("Saving Data");
+  });
+  //parseRawData();
+  console.log(buffStore);
+  let saveIt = buff.join(",");
+  console.log(saveIt);
+  // const batt = buff.readUInt16BE();
+  // const sysTime = buff.readUInt32BE(2);
+  // const degF = buff.readUInt8(6);
+  // // console.log(
+  //   `buffBattery Level: ${batt} System Time: ${sysTime} System Temp: ${degF}`
+  // );
+  res.render("index.ejs");
+});
+
+app.get("/calibrate", (req, res) => {
+  console.log(req.query);
+  // timerec = Math.round(Date.now() / 1000);
+  // console.log(timerec);
+  // let buff = Buffer.alloc(4);
+  // buff.writeUInt32BE(timerec + 7);
+  // let base64data = buff.toString("base64");
+  // let t = 1656857613;
+  // let tBuf = Buffer.alloc(4);
+  // tBuf.writeUInt32BE(t);
+  // console.log(tBuf);
+  let buff = Buffer.from([0x10, 0x66, 0x0d, 0xa4, 0xc1, 0x62, 0x21, 0xff]);
+  let buffStore = buff.toString("hex");
+  fs.appendFile("./rawdata.dat", buffStore + "\n", (err) => {
+    if (err) return console.log(err);
+    console.log("Saving Data");
+  });
+  //parseRawData();
+  console.log(buffStore);
+  let saveIt = buff.join(",");
+  console.log(saveIt);
+  // const batt = buff.readUInt16BE();
+  // const sysTime = buff.readUInt32BE(2);
+  // const degF = buff.readUInt8(6);
+  // // console.log(
+  //   `buffBattery Level: ${batt} System Time: ${sysTime} System Temp: ${degF}`
+  // );
+  res.render("calibrate.ejs");
+});
+
 const parseRawData = () => {
   fs.readFile("./rawdata.dat", "utf8", (err, data) => {
     if (err) {
