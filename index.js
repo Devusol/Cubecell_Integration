@@ -80,6 +80,7 @@ app.get("/stopLive", function (req, res) {
 
 app.post("/", (req, res) => {
   console.log(req.body.port);
+  console.log(req.body.description);
   const bufferObj = Buffer.from(req.body.payload, "base64");
   console.log(bufferObj);
   if (req.body.port == 2) {
