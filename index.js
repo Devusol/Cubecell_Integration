@@ -33,7 +33,6 @@ io.on("connection", function (socket) {
   });
 });
 
-
 app.set("view engine", ejs);
 app.set("views", path.join(__dirname, "views"));
 
@@ -41,82 +40,10 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(cors());
 
-app.get("/params", (req, res) => {
-  const { paramsData } = req.params;
-  console.log("here");
-  res.render("ui.ejs", { paramsData });
-});
-
-app.post("/live", function (req, res) {
-  console.log(req.body.payload);
-  res.redirect("/params?" + req.body.payload);
-
-  // timerec = Math.round(Date.now() / 1000);
-  // console.log(timerec);
-  // let buff = Buffer.alloc(4);
-  //buff.writeUInt32BE(timerec + 7);
-  // let buff = new Buffer(sendString);
-  // let base64data = buff.toString("base64");
-
-  // axios
-  //   .post(downlinkURL, {
-  //     payload_raw: base64data,
-  //     port: 10,
-  //     confirmed: false
-  //   })
-  //   .then(function (response) {
-  //     console.log(response);
-  //     res.send(response.data);
-  //   })
-  //   .catch(function (error) {
-  //     console.log(error);
-  //   });
-
-  // const millis = Date.now() - timerec;
-  // const elapsed = Math.floor(millis / 1000);
-  // const batt = bufferObj.readUint16BE();
-  // const temp1 = bufferObj.readUint16BE(2);
-  // const temp2 = bufferObj.readUInt16BE(7);
-  // const temp3 = bufferObj.readUInt16BE(9);
-  // //console.log(bufferObj.toString("hex"));
-  // console.log(
-  //   "Time Stamp: ",
-  //   timestamp.toLocaleString("en-US", { timeZone: "America/New_York" })
-  // );
-
-  // console.log(`Battery: ${batt / 1000} volts`);
-  // console.log(`Temp1: ${degFahrenheit(temp1)} °F`);
-  // console.log(`Temp2: ${degFahrenheit(temp2)} °F`);
-  // console.log(`Temp3: ${degFahrenheit(temp3)} °F`)
-  // for (const value of bufferObj.values()) {
-  //   console.log(value.toString());
-  // }
-
-  // if (elapsed > elapsedMax) {
-  //   console.log("count: ", count, "elapsed time: ", elapsed, " missed some");
-  //   //  console.log(bufferObj);
-  //   count = 0;
-  // } else {
-  //   console.log(
-  //     `count: ${count} elapsed time: ${elapsed} sec recieved: ${bufferObj.length}`
-  //   );
-  // }
-  // count++;
-  // timerec = Date.now();
-  //console.log(req.body.payload);
-  //.toString());
-
-  //res.send("thank you from post route");
-});
-
-app.post("/get_status", (req, res) => {
-  let buff = new Buffer(sendString);
+app.get("/getLive", (req, res) => {
+  console.log("getLive Route");
+  let buff = Buffer.from(sendString);
   let base64data = buff.toString("base64");
-  // console.log(
-  //   '"' + sendString + '" converted to Base64 is "' + base64data + '"'
-  // );
-
-  console.log("set post route");
   axios
     .post(downlinkURL, {
       payload_raw: base64data,
@@ -132,21 +59,8 @@ app.post("/get_status", (req, res) => {
     });
 });
 
-app.post("/set", (req, res) => {
-  console.log("get status route");
-  axios
-    .post(downlinkURL, {
-      payload_raw: base64data,
-      port: 10,
-      confirmed: false
-    })
-    .then(function (response) {
-      console.log(response);
-      res.send(response.data);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+app.get("/stopLive", function (req, res) {
+  console.log("stopLive Route");
 });
 
 app.post("/", (req, res) => {
@@ -156,10 +70,10 @@ app.post("/", (req, res) => {
   if (req.body.port == 2) {
     console.log("it's data, lets save it to a file");
 
-    fs.appendFile("./rawdata.dat", bufferObj.toString("hex") + "\n", (err) => {
-      if (err) return console.log(err);
-      console.log("Saving Data");
-    });
+    // fs.appendFile("./rawdata.dat", bufferObj.toString("hex") + "\n", (err) => {
+    //   if (err) return console.log(err);
+    //   console.log("Saving Data");
+    // });
   } else if (req.body.port == 3) {
     console.log("it's status report");
     const batt = bufferObj.readUInt16BE();
@@ -174,18 +88,26 @@ app.post("/", (req, res) => {
       greeting: paramsData
     });
     return res.send("heard you");
-    // console.log(
-    //   `Battery Level: ${batt} System Time: ${Date(sysTime).toLocaleString(
-    //     "en-US",
-    //     {
-    //       timeZone: "America/New_York"
-    //     }
-    //   )} System Temp: ${degF}`
-    // );
-    // console.log("rendering");
-    // res.render("ui.ejs", { paramsData });
   } else if (req.body.port == 4) {
     console.log("it's live data");
+    const sysTime = bufferObj.readUInt32BE();
+    const a = bufferObj.readUInt16BE(4);
+    const aa = bufferObj.readUInt8(6);
+    const b = bufferObj.readUInt16BE(7);
+    const bb = bufferObj.readUInt8(9);
+    const c = bufferObj.readUInt16BE(10);
+    const cc = bufferObj.readUInt8(12);
+    const d = bufferObj.readUInt16BE(13);
+    const dd = bufferObj.readUInt8(15);
+
+    console.log(
+      `time  ${Date(sysTime).toLocaleString("en-US", {
+        timeZone: "America/New_York"
+      })} LC1: ${a}.${aa} LC2: ${b}.${bb} LC3: ${c}.${cc} LC4: ${d}.${dd}`
+    );
+    // io.emit("greeting-from-server", {
+    //   greeting: paramsData
+    // });
   } else {
     console.log("not sure what it is");
     console.log(req.body.port);
@@ -205,40 +127,10 @@ app.get("/", (req, res) => {
   // console.log(tBuf);
   let buff = Buffer.from([0x10, 0x66, 0x0d, 0xa4, 0xc1, 0x62, 0x21, 0xff]);
   let buffStore = buff.toString("hex");
-  fs.appendFile("./rawdata.dat", buffStore + "\n", (err) => {
-    if (err) return console.log(err);
-    console.log("Saving Data");
-  });
-  //parseRawData();
-  console.log(buffStore);
-  let saveIt = buff.join(",");
-  console.log(saveIt);
-  // const batt = buff.readUInt16BE();
-  // const sysTime = buff.readUInt32BE(2);
-  // const degF = buff.readUInt8(6);
-  // // console.log(
-  //   `buffBattery Level: ${batt} System Time: ${sysTime} System Temp: ${degF}`
-  // );
-  res.render("index.ejs");
-});
-
-app.get("/index", (req, res) => {
-  console.log(req.query);
-  // timerec = Math.round(Date.now() / 1000);
-  // console.log(timerec);
-  // let buff = Buffer.alloc(4);
-  // buff.writeUInt32BE(timerec + 7);
-  // let base64data = buff.toString("base64");
-  // let t = 1656857613;
-  // let tBuf = Buffer.alloc(4);
-  // tBuf.writeUInt32BE(t);
-  // console.log(tBuf);
-  let buff = Buffer.from([0x10, 0x66, 0x0d, 0xa4, 0xc1, 0x62, 0x21, 0xff]);
-  let buffStore = buff.toString("hex");
-  fs.appendFile("./rawdata.dat", buffStore + "\n", (err) => {
-    if (err) return console.log(err);
-    console.log("Saving Data");
-  });
+  // fs.appendFile("./rawdata.dat", buffStore + "\n", (err) => {
+  //   if (err) return console.log(err);
+  //   console.log("Saving Data");
+  // });
   //parseRawData();
   console.log(buffStore);
   let saveIt = buff.join(",");

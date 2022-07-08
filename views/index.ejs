@@ -4,8 +4,14 @@
     <div class="mainback p-2" id="indexPage">
         <%- include("partials/warningtext"); -%>
             <div class="row m-0 d-flex justify-content-center">
-                <button type="button" class="btn btn-primary col-3 m-4">Get Data</button>
-                <button type="button" class="btn btn-secondary col-3 m-4">Stop</button>
+                <div class="row">
+            <form action="/getLive" class="col-6" >
+                <button type="submit" class="btn btn-primary col-3 m-4">Start</button>
+            </form>
+            <form action="/stopLive" class="col-6">
+                <button type="submit" class="btn btn-secondary col-3 m-4">Stop</button>
+            </form>
+            </div>
             </div>
 
 
