@@ -2,64 +2,72 @@
     <div class="mainback p-2" id="calibratePage">
         <%- include("partials/warningtext"); -%>
 
-            <div class="row m-0 d-flex justify-content-center">
-                <button type="button" class="btn btn-primary col-3 m-4">Get Data</button>
-                <button type="button" class="btn btn-secondary col-3 m-4">Stop</button>
+        <div class="row m-0 d-flex justify-content-center">
+                <div class="row">
+            <form action="/getLive" class="col-6" >
+                <button type="submit" class="btn btn-primary col-3 m-4">Start</button>
+            </form>
+            <form action="/stopLive" class="col-6">
+                <button type="submit" class="btn btn-secondary col-3 m-4">Stop</button>
+            </form>
+            </div>
             </div>
 
             <h4>CALIBRATE</h4>
+            <form action="/cal" method="POST">
             <div class="row m-5">
                 <h5 class="card-title">Load Cell 1</h5>
                 <div class="col-6">
-                    <h5 class="card-title"><input type="loadcell1" id="loadcell1" class="form-control"></h5>
+                    <h5 class="card-title"><input type="number" step="0.01" name="loadcell1" placeholder="000.00 kg" class="form-control"></h5>
                 </div>
                 <div class="col-6">
-                    <p class="card-text"><button type="button" class="btn btn-primary col-3">Calibrate</button></p>
+                    <p class="card-text"><button type="submit" class="btn btn-primary col-3">Calibrate</button></p>
                 </div>
             </div>
 
             <div class="row m-5">
-                <h5 class="card-title">Load Cell 2</h5>
-                <div class="col-6">
-                    <h5 class="card-title"><input type="loadcell1" id="loadcell1" class="form-control"></h5>
+                    <h5 class="card-title">Load Cell 2</h5>
+                    <div class="col-6">
+                        <h5 class="card-title"><input type="number" step="0.01" name="loadcell2" placeholder="000.00 kg" class="form-control"></h5>
+                    </div>
+                    <div class="col-6">
+                        <p class="card-text"><button type="submit" class="btn btn-primary col-3">Calibrate</button></p>
+                    </div>
                 </div>
-                <div class="col-6">
-                    <p class="card-text"><button type="button" class="btn btn-primary col-3">Calibrate</button></p>
-                </div>
-            </div>
 
-            <div class="row m-5">
-                <h5 class="card-title">Load Cell 3</h5>
-                <div class="col-6">
-                    <h5 class="card-title"><input type="loadcell1" id="loadcell1" class="form-control"></h5>
-                </div>
-                <div class="col-6">
-                    <p class="card-text"><button type="button" class="btn btn-primary col-3">Calibrate</button></p>
-                </div>
-            </div>
+                <div class="row m-5">
+                        <h5 class="card-title">Load Cell 3</h5>
+                        <div class="col-6">
+                            <h5 class="card-title"><input type="number" step="0.01" name="loadcell3" placeholder="000.00 kg" class="form-control"></h5>
+                        </div>
+                        <div class="col-6">
+                            <p class="card-text"><button type="submit" class="btn btn-primary col-3">Calibrate</button></p>
+                        </div>
+                    </div>
+                    <div class="row m-5">
+                            <h5 class="card-title">Load Cell 4</h5>
+                            <div class="col-6">
+                                <h5 class="card-title"><input type="number" step="0.01" name="loadcell4" placeholder="000.00 kg" class="form-control"></h5>
+                            </div>
+                            <div class="col-6">
+                                <p class="card-text"><button type="submit" class="btn btn-primary col-3">Calibrate</button></p>
+                            </div>
+                    </div>
 
-            <div class="row m-5">
-                <h5 class="card-title">Load Cell 4</h5>
-                <div class="col-6">
-                    <h5 class="card-title"><input type="loadcell1" id="loadcell1" class="form-control"></h5>
-                </div>
-                <div class="col-6">
-                    <p class="card-text"><button type="button" class="btn btn-primary col-3">Calibrate</button></p>
-                </div>
-            </div>
-
-
-
+             </form>
 
 
 
 
             <h4>TARE</h4>
+            <form action="/tare">
             <div class="row px-5 pb-5">
                 <button type="button" class="btn btn-primary col-3 m-4">Tare</button>
-                <div class="spinner-border" role="status">
+            </form>
+            <div id="tareStatus">Tare Status</div>
+                <!-- <div class="spinner-border" role="status">
                     <span class="visually-hidden">Loading...</span>
-                </div>
+                </div> -->
             </div>
 
     </div>

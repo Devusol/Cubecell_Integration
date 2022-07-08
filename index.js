@@ -42,7 +42,7 @@ app.use(cors());
 
 app.get("/getLive", (req, res) => {
   console.log("getLive Route");
-  let buff = Buffer.from(sendString);
+  let buff = Buffer.from("start");
   let base64data = buff.toString("base64");
   axios
     .post(downlinkURL, {
@@ -61,6 +61,21 @@ app.get("/getLive", (req, res) => {
 
 app.get("/stopLive", function (req, res) {
   console.log("stopLive Route");
+  let buff = Buffer.from("stop");
+  let base64data = buff.toString("base64");
+  axios
+    .post(downlinkURL, {
+      payload_raw: base64data,
+      port: 16,
+      confirmed: false
+    })
+    .then(function (response) {
+      console.log(response.data);
+      res.redirect("/");
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
 });
 
 app.post("/", (req, res) => {
@@ -87,7 +102,6 @@ app.post("/", (req, res) => {
     io.emit("greeting-from-server", {
       greeting: paramsData
     });
-    return res.send("heard you");
   } else if (req.body.port == 4) {
     console.log("it's live data");
     const sysTime = bufferObj.readUInt32BE();
@@ -112,6 +126,7 @@ app.post("/", (req, res) => {
     console.log("not sure what it is");
     console.log(req.body.port);
   }
+  return res.send("heard you");
 });
 
 app.get("/", (req, res) => {
@@ -132,9 +147,9 @@ app.get("/", (req, res) => {
   //   console.log("Saving Data");
   // });
   //parseRawData();
-  console.log(buffStore);
+  // console.log(buffStore);
   let saveIt = buff.join(",");
-  console.log(saveIt);
+  // console.log(saveIt);
   // const batt = buff.readUInt16BE();
   // const sysTime = buff.readUInt32BE(2);
   // const degF = buff.readUInt8(6);
