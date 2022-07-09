@@ -9,7 +9,7 @@
                 <div class="col-lg-6">
                     <form action="/getLive">
 
-                        <button type="submit" class="btn btn-primary w-100 mb-3">Start</button>
+                        <button type="submit" class="btn btn-primary w-100 mb-3">Debug</button>
 
                     </form>
                 </div>
@@ -66,10 +66,14 @@
                     </div>
                 </div>
 
+                <div>
+                    <form action="/update" >
+                    <button class="btn btn-primary mt-4" type="submit" name="update">Update</button></form>
+                </div>
+
                 <div class="col-lg-6">
                     <h4 class="mt-3">CALIBRATE</h4>
                     <div class="card">
-
 
                         <form action="/cal" method="POST">
                             <div class="m-4">
@@ -138,7 +142,7 @@
                     <!-- </form> -->
                 </div>
                 <div class="col-lg-6">
-                    <form action="/tare" method="get">
+                    <form action="/tare" >
                         <h4 class="d-flex justify-content-center w-100">TARE</h4>
                         <button type="submit" class="btn btn-primary w-100 mb-3">Tare All</button>
 

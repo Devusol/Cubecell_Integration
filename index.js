@@ -77,6 +77,42 @@ app.get("/stopLive", function (req, res) {
     });
 });
 
+app.get("/update", function (req, res) {
+  let buff = Buffer.from("update");
+  let base64data = buff.toString("base64");
+  axios
+    .post(downlinkURL, {
+      payload_raw: base64data,
+      port: 12,
+      confirmed: false
+    })
+    .then(function (response) {
+      console.log(response.data);
+      res.redirect("/");
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+});
+
+app.get("/tare", function (req, res) {
+  let buff = Buffer.from("tare");
+  let base64data = buff.toString("base64");
+  axios
+    .post(downlinkURL, {
+      payload_raw: base64data,
+      port: 7,
+      confirmed: false
+    })
+    .then(function (response) {
+      console.log(response.data);
+      res.redirect("/");
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+});
+
 app.post("/", (req, res) => {
   // console.log(req.body);
   const bufferObj = Buffer.from(req.body.payload, "base64");
@@ -92,22 +128,22 @@ app.post("/", (req, res) => {
 
     for (const b of bufferObj) {
       console.log(b);
-      const sysTime = bufferObj.readUInt32LE();
-      const a = bufferObj.readUInt16BE(4);
-      const aa = bufferObj.readUInt8(6);
-      const b = bufferObj.readUInt16BE(7);
-      const bb = bufferObj.readUInt8(9);
-      const c = bufferObj.readUInt16BE(10);
-      const cc = bufferObj.readUInt8(12);
-      const d = bufferObj.readUInt16BE(13);
-      const dd = bufferObj.readUInt8(15);
+      // const sysTime = bufferObj.readUInt32LE();
+      // const a = bufferObj.readUInt16BE(4);
+      // const aa = bufferObj.readUInt8(6);
+      // const b = bufferObj.readUInt16BE(7);
+      // const bb = bufferObj.readUInt8(9);
+      // const c = bufferObj.readUInt16BE(10);
+      // const cc = bufferObj.readUInt8(12);
+      // const d = bufferObj.readUInt16BE(13);
+      // const dd = bufferObj.readUInt8(15);
     }
   } else if (req.body.port == 3) {
     console.log("it's status report");
     const batt = bufferObj.readUInt16BE();
     const sysTime = bufferObj.readUInt32BE(2);
     const degF = bufferObj.readUInt8(6);
-    const sysDate = Date(sysTime).toLocaleTimeString();
+    const sysDate = Date(sysTime);
     console.log(sysDate);
     let paramsData = `Batt: ${
       batt / 1000
@@ -150,8 +186,22 @@ app.get("/", (req, res) => {
   console.log(savePath);
 
   let buff = Buffer.from([
-    0x10, 0x3b, 0x0c7, 0x62, 0x15, 0x00, 0x06, 0x0a, 0x2e, 0x00, 0x08, 0x18,
-    0x00, 0xf7, 0x00, 0xfe
+    0x10,
+    0x3b,
+    0x0c7,
+    0x62,
+    0x15,
+    0x00,
+    0x06,
+    0x0a,
+    0x2e,
+    0x00,
+    0x08,
+    0x18,
+    0x00,
+    0xf7,
+    0x00,
+    0xfe
   ]);
   let buffStore = buff.toString("hex");
 
