@@ -31,28 +31,28 @@
                             <h5 class="card-title">Load Cell 1</h5>
                         </div>
                         <div class="col-6">
-                            <p class="card-text">0.45 kg</p>
+                            <p class="card-text" id="lc1">0.00 kg</p>
                         </div>
 
                         <div class="col-6">
                             <h5 class="card-title">Load Cell 2</h5>
                         </div>
                         <div class="col-6">
-                            <p class="card-text">0.45 kg</p>
+                            <p class="card-text" id="lc2">0.00 kg</p>
                         </div>
 
                         <div class="col-6">
                             <h5 class="card-title">Load Cell 3</h5>
                         </div>
                         <div class="col-6">
-                            <p class="card-text">0.45 kg</p>
+                            <p class="card-text" id="lc3">0.00 kg</p>
                         </div>
 
                         <div class="col-6">
                             <h5 class="card-title">Load Cell 4</h5>
                         </div>
                         <div class="col-6">
-                            <p class="card-text">0.45 kg</p>
+                            <p class="card-text" id="lc4">0.00 kg</p>
                         </div>
 
                     </div>
@@ -95,14 +95,15 @@
     <script>
         console.log("index file");
         var socket = io();
-        socket.on('greeting-from-server', function (message) {
-            let el = document.querySelector("#timeStamp");
-            el.innerHTML = message.greeting;
-
-            socket.emit('greeting-from-client', {
-                greeting: 'Hello Server'
-            });
+        socket.on('status-stamp', function (message) {
+            document.querySelector("#timeStamp").innerHTML = message.status;
         });
+        socket.on('live-data', (message) =>{
+            document.querySelector("#lc1").innerHTML = message.lc1;
+            document.querySelector("#lc2").innerHTML = message.lc2;
+            document.querySelector("#lc3").innerHTML = message.lc3;
+            document.querySelector("#lc4").innerHTML = message.lc4;
+        })
     </script>
     </body>
 

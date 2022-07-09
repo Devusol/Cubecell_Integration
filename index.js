@@ -16,7 +16,8 @@ let server,
   count = 0,
   timerec = Date.now(),
   sendString = "status",
-  clearHeliumDownlink = "__clear_downlink_queue__";
+  clearHeliumDownlink = "__clear_downlink_queue__",
+  savePath = path.join(__dirname, "public");
 
 server = http.Server(app);
 server.listen(port);
@@ -25,8 +26,8 @@ io = socketIO(server);
 
 io.on("connection", function (socket) {
   console.log("user connected");
-  socket.emit("greeting-from-server", {
-    greeting: "Waiting for data..."
+  socket.emit("status-stamp", {
+    status: "Waiting for data..."
   });
   socket.on("greeting-from-client", function (message) {
     console.log(message);
@@ -79,29 +80,28 @@ app.get("/stopLive", function (req, res) {
 });
 
 app.post("/", (req, res) => {
-  console.log(req.body.port);
-  console.log(req.body.description);
+  // console.log(req.body);
   const bufferObj = Buffer.from(req.body.payload, "base64");
   console.log(bufferObj);
   if (req.body.port == 2) {
     console.log("it's data, lets save it to a file");
-
-    // fs.appendFile("./rawdata.dat", bufferObj.toString("hex") + "\n", (err) => {
-    //   if (err) return console.log(err);
-    //   console.log("Saving Data");
-    // });
+    fs.appendFile(savePath, bufferObj.toString("hex") + "\n", (err) => {
+      if (err) return console.log(err);
+      console.log("Saving Data");
+    });
   } else if (req.body.port == 3) {
     console.log("it's status report");
     const batt = bufferObj.readUInt16BE();
     const sysTime = bufferObj.readUInt32BE(2);
     const degF = bufferObj.readUInt8(6);
-    let paramsData = `Battery Level: ${batt} System Time: ${Date(
-      sysTime
-    ).toLocaleString("en-US", {
-      timeZone: "America/New_York"
-    })} System Temp: ${degF}`;
-    io.emit("greeting-from-server", {
-      greeting: paramsData
+    const sysDate = new Date(sysTime).toLocaleTimeString();
+    console.log(sysDate);
+    let paramsData = `Batt: ${
+      batt / 1000
+    } V Sys Time: ${sysDate} Sys Temp: ${degF}`;
+
+    io.emit("status-stamp", {
+      status: paramsData
     });
   } else if (req.body.port == 4) {
     console.log("it's live data");
@@ -120,9 +120,12 @@ app.post("/", (req, res) => {
         timeZone: "America/New_York"
       })} LC1: ${a}.${aa} LC2: ${b}.${bb} LC3: ${c}.${cc} LC4: ${d}.${dd}`
     );
-    // io.emit("greeting-from-server", {
-    //   greeting: paramsData
-    // });
+    io.emit("live-data", {
+      lc1: `${a}.${aa}`,
+      lc2: `${b}.${bb}`,
+      lc3: `${c}.${cc}`,
+      lc4: `${d}.${dd}`
+    });
   } else {
     console.log("not sure what it is");
     console.log(req.body.port);
@@ -131,7 +134,7 @@ app.post("/", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  console.log(req.query);
+  console.log(savePath);
   // timerec = Math.round(Date.now() / 1000);
   // console.log(timerec);
   // let buff = Buffer.alloc(4);
@@ -151,43 +154,35 @@ app.get("/", (req, res) => {
   // console.log(buffStore);
   let saveIt = buff.join(",");
   // console.log(saveIt);
-  // const batt = buff.readUInt16BE();
-  // const sysTime = buff.readUInt32BE(2);
-  // const degF = buff.readUInt8(6);
-  // // console.log(
-  //   `buffBattery Level: ${batt} System Time: ${sysTime} System Temp: ${degF}`
-  // );
+  const batt = buff.readUInt16BE();
+  const sysTime = buff.readUInt32BE(2);
+  const degF = buff.readUInt8(6);
+
   res.render("index.ejs");
 });
 
-app.get("/calibrate", (req, res) => {
-  console.log(req.query);
-  // timerec = Math.round(Date.now() / 1000);
-  // console.log(timerec);
-  // let buff = Buffer.alloc(4);
-  // buff.writeUInt32BE(timerec + 7);
-  // let base64data = buff.toString("base64");
-  // let t = 1656857613;
-  // let tBuf = Buffer.alloc(4);
-  // tBuf.writeUInt32BE(t);
-  // console.log(tBuf);
-  let buff = Buffer.from([0x10, 0x66, 0x0d, 0xa4, 0xc1, 0x62, 0x21, 0xff]);
-  let buffStore = buff.toString("hex");
-  fs.appendFile("./rawdata.dat", buffStore + "\n", (err) => {
-    if (err) return console.log(err);
-    console.log("Saving Data");
-  });
-  //parseRawData();
-  console.log(buffStore);
-  let saveIt = buff.join(",");
-  console.log(saveIt);
-  // const batt = buff.readUInt16BE();
-  // const sysTime = buff.readUInt32BE(2);
-  // const degF = buff.readUInt8(6);
-  // // console.log(
-  //   `buffBattery Level: ${batt} System Time: ${sysTime} System Temp: ${degF}`
-  // );
-  res.render("calibrate.ejs");
+app.post("/cal", (req, res) => {
+  console.log("calibrate Route: ", req.body);
+  let buff = Buffer.from("calibrate");
+  let base64data = buff.toString("base64");
+  let calPort = 11;
+
+  //if (check for req.body.values) then set port value
+  //either 11,12,13,14 to calibrate 1, 2, 3, 4
+
+  axios
+    .post(downlinkURL, {
+      payload_raw: base64data,
+      port: calPort,
+      confirmed: false
+    })
+    .then(function (response) {
+      console.log(response.data);
+      res.redirect("/");
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
 });
 
 const parseRawData = () => {
@@ -203,83 +198,3 @@ const parseRawData = () => {
 const degFahrenheit = (temp) => {
   return ((temp / 10) * 1.8 + 32).toFixed(2);
 };
-// function Decoder(bytes, port) {
-//   var mode = (bytes[6] & 0x7c) >> 2;
-//   var decode = {};
-//   if (mode != 2) {
-//     decode.BatV = ((bytes[0] << 8) | bytes[1]) / 1000;
-//     decode.TempC1 = parseFloat(
-//       ((((bytes[2] << 24) >> 16) | bytes[3]) / 10).toFixed(2)
-//     );
-//     decode.ADC_CH0V = ((bytes[4] << 8) | bytes[5]) / 1000;
-//     decode.Digital_IStatus = bytes[6] & 0x02 ? "H" : "L";
-//     if (mode != 6) {
-//       decode.EXTI_Trigger = bytes[6] & 0x01 ? "TRUE" : "FALSE";
-//       decode.Door_status = bytes[6] & 0x80 ? "CLOSE" : "OPEN";
-//     }
-//   }
-
-//   if (mode == "0") {
-//     decode.Work_mode = "IIC";
-//     if (((bytes[9] << 8) | bytes[10]) === 0) {
-//       decode.Illum = ((bytes[7] << 24) >> 16) | bytes[8];
-//     } else {
-//       decode.TempC_SHT = parseFloat(
-//         ((((bytes[7] << 24) >> 16) | bytes[8]) / 10).toFixed(2)
-//       );
-//       decode.Hum_SHT = parseFloat(
-//         (((bytes[9] << 8) | bytes[10]) / 10).toFixed(1)
-//       );
-//     }
-//   } else if (mode == "1") {
-//     decode.Work_mode = " Distance";
-//     decode.Distance_cm = parseFloat(
-//       (((bytes[7] << 8) | bytes[8]) / 10).toFixed(1)
-//     );
-//     if (((bytes[9] << 8) | bytes[10]) != 65535) {
-//       decode.Distance_signal_strength = parseFloat(
-//         ((bytes[9] << 8) | bytes[10]).toFixed(0)
-//       );
-//     }
-//   } else if (mode == "2") {
-//     decode.Work_mode = " 3ADC";
-//     decode.BatV = bytes[11] / 10;
-//     decode.ADC_CH0V = ((bytes[0] << 8) | bytes[1]) / 1000;
-//     decode.ADC_CH1V = ((bytes[2] << 8) | bytes[3]) / 1000;
-//     decode.ADC_CH4V = ((bytes[4] << 8) | bytes[5]) / 1000;
-//     decode.Digital_IStatus = bytes[6] & 0x02 ? "H" : "L";
-//     decode.EXTI_Trigger = bytes[6] & 0x01 ? "TRUE" : "FALSE";
-//     decode.Door_status = bytes[6] & 0x80 ? "CLOSE" : "OPEN";
-
-//     if (((bytes[9] << 8) | bytes[10]) === 0) {
-//       decode.Illum = ((bytes[7] << 24) >> 16) | bytes[8];
-//     } else {
-//       decode.TempC_SHT = parseFloat(
-//         ((((bytes[7] << 24) >> 16) | bytes[8]) / 10).toFixed(2)
-//       );
-//       decode.Hum_SHT = parseFloat(
-//         (((bytes[9] << 8) | bytes[10]) / 10).toFixed(1)
-//       );
-//     }
-//   } else if (mode == "3") {
-//     decode.Work_mode = "3DS18B20";
-//     decode.TempC2 = parseFloat(
-//       ((((bytes[7] << 24) >> 16) | bytes[8]) / 10).toFixed(2)
-//     );
-
-//     decode.TempC3 = parseFloat(
-//       ((((bytes[9] << 24) >> 16) | bytes[10]) / 10).toFixed(2)
-//     );
-//   } else if (mode == "4") {
-//     decode.Work_mode = "Weight";
-//     decode.Weight = ((bytes[7] << 24) >> 16) | bytes[8];
-//   } else if (mode == "5") {
-//     decode.Work_mode = "Count";
-//     decode.Count =
-//       (bytes[7] << 24) | (bytes[8] << 16) | (bytes[9] << 8) | bytes[10];
-//   }
-
-//   if (bytes.length == 11 || bytes.length == 12) {
-//     return decode;
-//   }
-// }
