@@ -8,14 +8,12 @@ const path = require("path");
 const fs = require("fs");
 const ejs = require("ejs");
 const port = 8080 || process.env.port;
-const elapsedMax = 18;
 const downlinkURL =
   "https://console.helium.com/api/v1/down/67d97e64-2cbd-42b5-b11f-e5e4f99e2eed/dAdVXsOqN4P_P4EaKXSu3CbkQk1zLpeg/2d635b83-c1a8-48fa-a334-60a251c00697";
 let server,
   io,
   count = 0,
   timerec = Date.now(),
-  sendString = "status",
   clearHeliumDownlink = "__clear_downlink_queue__",
   savePath = path.join(__dirname, "public");
 
@@ -29,9 +27,9 @@ io.on("connection", function (socket) {
   socket.emit("status-stamp", {
     status: "Waiting for data..."
   });
-  socket.on("greeting-from-client", function (message) {
-    console.log(message);
-  });
+  // socket.on("greeting-from-client", function (message) {
+  //   console.log(message);
+  // });
 });
 
 app.set("view engine", ejs);
@@ -83,18 +81,33 @@ app.post("/", (req, res) => {
   // console.log(req.body);
   const bufferObj = Buffer.from(req.body.payload, "base64");
   console.log(bufferObj);
+
   if (req.body.port == 2) {
     console.log("it's data, lets save it to a file");
+
     fs.appendFile(savePath, bufferObj.toString("hex") + "\n", (err) => {
       if (err) return console.log(err);
       console.log("Saving Data");
     });
+
+    for (const b of bufferObj) {
+      console.log(b);
+      const sysTime = bufferObj.readUInt32LE();
+      const a = bufferObj.readUInt16BE(4);
+      const aa = bufferObj.readUInt8(6);
+      const b = bufferObj.readUInt16BE(7);
+      const bb = bufferObj.readUInt8(9);
+      const c = bufferObj.readUInt16BE(10);
+      const cc = bufferObj.readUInt8(12);
+      const d = bufferObj.readUInt16BE(13);
+      const dd = bufferObj.readUInt8(15);
+    }
   } else if (req.body.port == 3) {
     console.log("it's status report");
     const batt = bufferObj.readUInt16BE();
     const sysTime = bufferObj.readUInt32BE(2);
     const degF = bufferObj.readUInt8(6);
-    const sysDate = new Date(sysTime).toLocaleTimeString();
+    const sysDate = Date(sysTime).toLocaleTimeString();
     console.log(sysDate);
     let paramsData = `Batt: ${
       batt / 1000
@@ -105,7 +118,7 @@ app.post("/", (req, res) => {
     });
   } else if (req.body.port == 4) {
     console.log("it's live data");
-    const sysTime = bufferObj.readUInt32BE();
+    const sysTime = bufferObj.readUInt32LE();
     const a = bufferObj.readUInt16BE(4);
     const aa = bufferObj.readUInt8(6);
     const b = bufferObj.readUInt16BE(7);
@@ -114,7 +127,7 @@ app.post("/", (req, res) => {
     const cc = bufferObj.readUInt8(12);
     const d = bufferObj.readUInt16BE(13);
     const dd = bufferObj.readUInt8(15);
-
+    console.log(sysTime);
     console.log(
       `time  ${Date(sysTime).toLocaleString("en-US", {
         timeZone: "America/New_York"
@@ -135,23 +148,13 @@ app.post("/", (req, res) => {
 
 app.get("/", (req, res) => {
   console.log(savePath);
-  // timerec = Math.round(Date.now() / 1000);
-  // console.log(timerec);
-  // let buff = Buffer.alloc(4);
-  // buff.writeUInt32BE(timerec + 7);
-  // let base64data = buff.toString("base64");
-  // let t = 1656857613;
-  // let tBuf = Buffer.alloc(4);
-  // tBuf.writeUInt32BE(t);
-  // console.log(tBuf);
-  let buff = Buffer.from([0x10, 0x66, 0x0d, 0xa4, 0xc1, 0x62, 0x21, 0xff]);
+
+  let buff = Buffer.from([
+    0x10, 0x3b, 0x0c7, 0x62, 0x15, 0x00, 0x06, 0x0a, 0x2e, 0x00, 0x08, 0x18,
+    0x00, 0xf7, 0x00, 0xfe
+  ]);
   let buffStore = buff.toString("hex");
-  // fs.appendFile("./rawdata.dat", buffStore + "\n", (err) => {
-  //   if (err) return console.log(err);
-  //   console.log("Saving Data");
-  // });
-  //parseRawData();
-  // console.log(buffStore);
+
   let saveIt = buff.join(",");
   // console.log(saveIt);
   const batt = buff.readUInt16BE();
@@ -192,9 +195,27 @@ const parseRawData = () => {
       return;
     }
     //  console.log(data);
+    // fs.appendFile("./rawdata.dat", buffStore + "\n", (err) => {
+    //   if (err) return console.log(err);
+    //   console.log("Saving Data");
+    // });
+    //parseRawData();
+    // console.log(buffStore);
   });
 };
 
 const degFahrenheit = (temp) => {
   return ((temp / 10) * 1.8 + 32).toFixed(2);
+};
+
+const sendTime = () => {
+  // timerec = Math.round(Date.now() / 1000);
+  // console.log(timerec);
+  // let buff = Buffer.alloc(4);
+  // buff.writeUInt32BE(timerec + 7);
+  // let base64data = buff.toString("base64");
+  // let t = 1656857613;
+  // let tBuf = Buffer.alloc(4);
+  // tBuf.writeUInt32BE(t);
+  // console.log(tBuf);
 };
