@@ -15,7 +15,7 @@ let server,
   count = 0,
   timerec = Date.now(),
   clearHeliumDownlink = "__clear_downlink_queue__",
-  savePath = path.join(__dirname, "public");
+  savePath = path.join(__dirname, "public/rawdata.dat");
 
 server = http.Server(app);
 server.listen(port);
