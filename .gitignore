@@ -27,3 +27,4 @@ admin.json
 tmp/
 
 *.dat
+/rawdata.dat
