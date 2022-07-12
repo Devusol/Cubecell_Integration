@@ -114,7 +114,7 @@ app.get("/tare", function (req, res) {
 });
 
 app.post("/", (req, res) => {
-  // console.log(req.body);
+  console.log(req.body.payload);
   const bufferObj = Buffer.from(req.body.payload, "base64");
   const buffCSV = Buffer.alloc(16);
   // console.log(bufferObj);
@@ -128,9 +128,10 @@ app.post("/", (req, res) => {
     });
 
     const dataStr = fs.readFileSync(savePath, "utf8");
-    const dataBuff = Buffer.from(dataStr, "HEX");
+    // const dataBuff = Buffer.from(dataStr, "HEX");
+    const dataBuff = bufferObj;
     console.log(dataBuff);
-    let index = 15;
+    let index = 16;
     let makeCSV = "";
 
     for (const b of dataBuff.entries()) {
@@ -138,14 +139,15 @@ app.post("/", (req, res) => {
       // makeCSV += `${b[1]}, `;
 
       if (b[0] == index) {
-        dataBuff.copy(buffCSV, 0, index - 15, index);
+        dataBuff.copy(buffCSV, 0, index - 16, index);
+        console.log(buffCSV);
         // const sysTime = buffCSV.readUInt32LE() * 1000;
         // var timestamp = new Date(1657335808 * 1000);
         makeCSV += `${buffCSV.readUInt32LE()}, `;
-        makeCSV += `${buffCSV.readInt16BE(4)}.${buffCSV.readInt8(6)}, `;
-        makeCSV += `${buffCSV.readInt16BE(7)}.${buffCSV.readInt8(9)}, `;
-        makeCSV += `${buffCSV.readInt16BE(10)}.${buffCSV.readInt8(12)}, `;
-        makeCSV += `${buffCSV.readInt16BE(13)}.${buffCSV.readInt8(15)}, \n`;
+        makeCSV += `${buffCSV.readInt16LE(4)}.${buffCSV.readInt8(6)}, `;
+        makeCSV += `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)}, `;
+        makeCSV += `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)}, `;
+        makeCSV += `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)}, \n`;
         index += 16;
       }
     }
@@ -173,7 +175,7 @@ app.post("/", (req, res) => {
     console.log(sysDate);
     let paramsData = `Batt: ${
       batt / 1000
-    } V Sys Time: ${sysDate} Sys Temp: ${degF}`;
+    } V Sys Time: ${sysTime} Sys Temp: ${degF}`;
 
     io.emit("status-stamp", {
       status: paramsData
