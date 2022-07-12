@@ -114,30 +114,58 @@ app.get("/tare", function (req, res) {
 });
 
 app.post("/", (req, res) => {
-  // console.log(req.body);
+  console.log(req.body.payload);
   const bufferObj = Buffer.from(req.body.payload, "base64");
-  console.log(bufferObj);
+  const buffCSV = Buffer.alloc(16);
+  // console.log(bufferObj);
 
   if (req.body.port == 2) {
     console.log("it's data, lets save it to a file");
-
-    fs.appendFile(savePath, bufferObj.toString("hex") + "\n", (err) => {
+    //  console.log(bufferObj.toString("HEX"));
+    fs.appendFile("rawdata.dat", bufferObj.toString("HEX") + "\n", (err) => {
       if (err) return console.log(err);
-      console.log("Saving Data");
+      // console.log("Saving Data");
     });
 
-    for (const b of bufferObj) {
-      console.log(b);
-      // const sysTime = bufferObj.readUInt32LE();
-      // const a = bufferObj.readUInt16BE(4);
-      // const aa = bufferObj.readUInt8(6);
-      // const b = bufferObj.readUInt16BE(7);
-      // const bb = bufferObj.readUInt8(9);
-      // const c = bufferObj.readUInt16BE(10);
-      // const cc = bufferObj.readUInt8(12);
-      // const d = bufferObj.readUInt16BE(13);
-      // const dd = bufferObj.readUInt8(15);
+    const dataStr = fs.readFileSync(savePath, "utf8");
+    // const dataBuff = Buffer.from(dataStr, "HEX");
+    const dataBuff = bufferObj;
+    console.log(dataBuff);
+    let index = 16;
+    let makeCSV = "";
+
+    for (const b of dataBuff.entries()) {
+      //console.log(b);
+      // makeCSV += `${b[1]}, `;
+
+      if (b[0] == index) {
+        dataBuff.copy(buffCSV, 0, index - 16, index);
+        console.log(buffCSV);
+        // const sysTime = buffCSV.readUInt32LE() * 1000;
+        // var timestamp = new Date(1657335808 * 1000);
+        makeCSV += `${buffCSV.readUInt32LE()}, `;
+        makeCSV += `${buffCSV.readInt16LE(4)}.${buffCSV.readInt8(6)}, `;
+        makeCSV += `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)}, `;
+        makeCSV += `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)}, `;
+        makeCSV += `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)}, \n`;
+        index += 16;
+      }
     }
+    //makeCSV += `${b[1]}, `;
+    // makeCSV += `${b}, `;
+
+    //   //if ((index += 16)) console.log(index);
+    //   // const sysTime = bufferObj.readUInt32LE();
+    //   // const a = bufferObj.readUInt16BE(4);
+    //   // const aa = bufferObj.readUInt8(6);
+    //   // const b = bufferObj.readUInt16BE(7);
+    //   // const bb = bufferObj.readUInt8(9);
+    //   // const c = bufferObj.readUInt16BE(10);
+    //   // const cc = bufferObj.readUInt8(12);
+    //   // const d = bufferObj.readUInt16BE(13);
+    //   // const dd = bufferObj.readUInt8(15);
+    //}
+    console.log(makeCSV);
   } else if (req.body.port == 3) {
     console.log("it's status report");
     const batt = bufferObj.readUInt16BE();
@@ -147,7 +175,7 @@ app.post("/", (req, res) => {
     console.log(sysDate);
     let paramsData = `Batt: ${
       batt / 1000
-    } V Sys Time: ${sysDate} Sys Temp: ${degF}`;
+    } V Sys Time: ${sysTime} Sys Temp: ${degF}`;
 
     io.emit("status-stamp", {
       status: paramsData
