@@ -28,5 +28,3 @@ tmp/
 
 *.dat
 /rawdata.dat
-*.csv
-logs/

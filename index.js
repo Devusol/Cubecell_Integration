@@ -7,8 +7,8 @@ const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
 const ejs = require("ejs");
+const nodemailer = require("nodemailer");
 const port = 8080 || process.env.port;
-const elapsedMax = 15000;
 const downlinkURL =
   "https://console.helium.com/api/v1/down/67d97e64-2cbd-42b5-b11f-e5e4f99e2eed/dAdVXsOqN4P_P4EaKXSu3CbkQk1zLpeg/2d635b83-c1a8-48fa-a334-60a251c00697";
 let server,
@@ -16,7 +16,7 @@ let server,
   count = 0,
   timerec = Date.now(),
   clearHeliumDownlink = "__clear_downlink_queue__",
-  savePath = path.join(__dirname, "public", "logs/");
+  savePath = path.join(__dirname, "public/rawdata.dat");
 
 server = http.Server(app);
 server.listen(port);
@@ -123,12 +123,12 @@ app.post("/", (req, res) => {
   if (req.body.port == 2) {
     console.log("it's data, lets save it to a file");
     //  console.log(bufferObj.toString("HEX"));
-    fs.appendFile(savePath + "rawdata.dat", req.body.payload + "\n", (err) => {
+    fs.appendFile("rawdata.dat", bufferObj.toString("HEX") + "\n", (err) => {
       if (err) return console.log(err);
       // console.log("Saving Data");
     });
 
-    //const dataStr = fs.readFileSync(savePath, "utf8");
+    const dataStr = fs.readFileSync(savePath, "utf8");
     // const dataBuff = Buffer.from(dataStr, "HEX");
     const dataBuff = bufferObj;
     console.log(dataBuff);
@@ -152,27 +152,20 @@ app.post("/", (req, res) => {
         index += 16;
       }
     }
-    fs.appendFile(savePath + `makeCSV.dat`, makeCSV, (err) => {
-      if (err) return console.log(err);
-      console.log("Saving Data");
-    });
+    //makeCSV += `${b[1]}, `;
+    // makeCSV += `${b}, `;
 
-    const timerec = Date.now();
-    let elapsed;
-    setTimeout(() => {
-      fs.rename(
-        savePath + `makeCSV.dat`,
-        savePath + `${Date.now()}.csv`,
-        (error) => {
-          if (error) {
-            console.log(error);
-          } else {
-            console.log("\nFile saved\n");
-          }
-        }
-      );
-    }, elapsedMax);
-
+    //   //if ((index += 16)) console.log(index);
+    //   // const sysTime = bufferObj.readUInt32LE();
+    //   // const a = bufferObj.readUInt16BE(4);
+    //   // const aa = bufferObj.readUInt8(6);
+    //   // const b = bufferObj.readUInt16BE(7);
+    //   // const bb = bufferObj.readUInt8(9);
+    //   // const c = bufferObj.readUInt16BE(10);
+    //   // const cc = bufferObj.readUInt8(12);
+    //   // const d = bufferObj.readUInt16BE(13);
+    //   // const dd = bufferObj.readUInt8(15);
+    //}
     console.log(makeCSV);
   } else if (req.body.port == 3) {
     console.log("it's status report");
@@ -188,6 +181,8 @@ app.post("/", (req, res) => {
     io.emit("status-stamp", {
       status: paramsData
     });
+
+    sendMail(paramsData);
   } else if (req.body.port == 4) {
     console.log("it's live data");
     const sysTime = bufferObj.readUInt32LE();
@@ -222,8 +217,22 @@ app.get("/", (req, res) => {
   console.log(savePath);
 
   let buff = Buffer.from([
-    0x10, 0x3b, 0x0c7, 0x62, 0x15, 0x00, 0x06, 0x0a, 0x2e, 0x00, 0x08, 0x18,
-    0x00, 0xf7, 0x00, 0xfe
+    0x10,
+    0x3b,
+    0x0c7,
+    0x62,
+    0x15,
+    0x00,
+    0x06,
+    0x0a,
+    0x2e,
+    0x00,
+    0x08,
+    0x18,
+    0x00,
+    0xf7,
+    0x00,
+    0xfe
   ]);
   let buffStore = buff.toString("hex");
 
@@ -290,4 +299,31 @@ const sendTime = () => {
   // let tBuf = Buffer.alloc(4);
   // tBuf.writeUInt32BE(t);
   // console.log(tBuf);
+};
+
+const sendMail = (emailMessage) => {
+  let mailOptions = {
+    from: "nodemailer@devusol.com",
+    to: "flexmethods@gmail.com",
+    subject: "Waverider Lives",
+    text: emailMessage
+  };
+
+  let transporter = nodemailer.createTransport({
+    host: "devusol.com",
+    port: 465,
+    secure: true, // true for 465, false for other ports
+    auth: {
+      user: process.env.EMAIL_UN,
+      pass: process.env.EMAIL_PW
+    }
+  });
+
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.log("Error occurred. " + err.message);
+      return process.exit(1);
+    }
+    console.log("Message sent: %s", mail.messageId);
+  });
 };
