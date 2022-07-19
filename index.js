@@ -10,7 +10,7 @@ const fs = require("fs");
 const ejs = require("ejs");
 const nodemailer = require("nodemailer");
 const serveIndex = require("serve-index");
-const port = 8080 || process.env.port;
+const port = 3000 || process.env.port;
 const downlinkURL =
   "https://console.helium.com/api/v1/down/67d97e64-2cbd-42b5-b11f-e5e4f99e2eed/dAdVXsOqN4P_P4EaKXSu3CbkQk1zLpeg/2d635b83-c1a8-48fa-a334-60a251c00697";
 let server,
@@ -41,8 +41,8 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
   "/logs",
-  express.static("public/logs"),
-  serveIndex("public/logs", { icons: true })
+  express.static(savePath),
+  serveIndex(savePath, { icons: true })
 );
 
 app.use(express.json());
@@ -136,7 +136,7 @@ app.post("/", (req, res) => {
       // console.log("Saving Data");
     });
 
-    const dataStr = fs.readFileSync(savePath, "utf8");
+    // const dataStr = fs.readFileSync(savePath, "utf8");
     // const dataBuff = Buffer.from(dataStr, "HEX");
     const dataBuff = bufferObj;
     console.log(dataBuff);
@@ -160,20 +160,12 @@ app.post("/", (req, res) => {
         index += 16;
       }
     }
-    //makeCSV += `${b[1]}, `;
-    // makeCSV += `${b}, `;
-
-    //   //if ((index += 16)) console.log(index);
-    //   // const sysTime = bufferObj.readUInt32LE();
-    //   // const a = bufferObj.readUInt16BE(4);
-    //   // const aa = bufferObj.readUInt8(6);
-    //   // const b = bufferObj.readUInt16BE(7);
-    //   // const bb = bufferObj.readUInt8(9);
-    //   // const c = bufferObj.readUInt16BE(10);
-    //   // const cc = bufferObj.readUInt8(12);
-    //   // const d = bufferObj.readUInt16BE(13);
-    //   // const dd = bufferObj.readUInt8(15);
-    //}
+    const date = new Date();
+    let filename = `/${date.toJSON().slice(0, 10)}_${date.getHours()}_${date.getMinutes()}_${date.getSeconds()}.csv`
+    fs.appendFile(savePath + filename, makeCSV, (err) => {
+      if (err) return console.log(err);
+      // console.log("Saving Data");
+    });
     console.log(makeCSV);
   } else if (req.body.port == 3) {
     console.log("it's status report");
@@ -182,9 +174,8 @@ app.post("/", (req, res) => {
     const degF = bufferObj.readUInt8(6);
     const sysDate = Date(sysTime);
     console.log(sysDate);
-    let paramsData = `Batt: ${
-      batt / 1000
-    } V Sys Time: ${sysTime} Sys Temp: ${degF}`;
+    let paramsData = `Batt: ${batt / 1000
+      } V Sys Time: ${sysTime} Sys Temp: ${degF}`;
 
     io.emit("status-stamp", {
       status: paramsData
