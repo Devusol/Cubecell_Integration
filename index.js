@@ -184,7 +184,7 @@ app.post("/", (req, res) => {
   } else if (req.body.port == 3) {
     console.log("it's status report");
     const batt = bufferObj.readUInt16BE();
-    const sysTime = new Date(bufferObj.readUInt32BE(2)).toUTCString();
+    const sysTime = new Date(bufferObj.readUInt32BE(2) * 1000).toUTCString();
     const degF = bufferObj.readUInt8(6);
     let paramsData = `Batt: ${batt / 1000} V Sys Time: ${sysTime} Sys Temp: ${degF}`;
 
