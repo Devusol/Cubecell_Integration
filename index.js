@@ -9,6 +9,7 @@ const path = require("path");
 const fs = require("fs");
 const ejs = require("ejs");
 const nodemailer = require("nodemailer");
+const serveIndex = require("serve-index");
 const port = 8080 || process.env.port;
 const downlinkURL =
   "https://console.helium.com/api/v1/down/67d97e64-2cbd-42b5-b11f-e5e4f99e2eed/dAdVXsOqN4P_P4EaKXSu3CbkQk1zLpeg/2d635b83-c1a8-48fa-a334-60a251c00697";
@@ -38,6 +39,12 @@ app.set("view engine", ejs);
 app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static(path.join(__dirname, "public")));
+app.use(
+  "/logs",
+  express.static("public/logs"),
+  serveIndex("public/logs", { icons: true })
+);
+
 app.use(express.json());
 app.use(cors());
 
@@ -218,22 +225,8 @@ app.get("/", (req, res) => {
   console.log(savePath);
 
   let buff = Buffer.from([
-    0x10,
-    0x3b,
-    0x0c7,
-    0x62,
-    0x15,
-    0x00,
-    0x06,
-    0x0a,
-    0x2e,
-    0x00,
-    0x08,
-    0x18,
-    0x00,
-    0xf7,
-    0x00,
-    0xfe
+    0x10, 0x3b, 0x0c7, 0x62, 0x15, 0x00, 0x06, 0x0a, 0x2e, 0x00, 0x08, 0x18,
+    0x00, 0xf7, 0x00, 0xfe
   ]);
   let buffStore = buff.toString("hex");
 
@@ -245,6 +238,11 @@ app.get("/", (req, res) => {
 
   res.render("index.ejs");
 });
+
+// app.get("/logs", (req, res) => {
+//   console.log(savePath);
+//   res.sendFile(path.join(__dirname, "logs"));
+// });
 
 app.post("/cal", (req, res) => {
   console.log("calibrate Route: ", req.body);
