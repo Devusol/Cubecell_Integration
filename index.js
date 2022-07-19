@@ -156,7 +156,7 @@ app.post("/", (req, res) => {
         makeCSV += `${buffCSV.readInt16LE(4)}.${buffCSV.readInt8(6)}, `;
         makeCSV += `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)}, `;
         makeCSV += `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)}, `;
-        makeCSV += `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)}, \n`;
+        makeCSV += `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)},\n`;
         index += 16;
       }
     }
