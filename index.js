@@ -7,6 +7,7 @@ const axios = require("axios");
 const path = require("path");
 const fs = require("fs");
 const ejs = require("ejs");
+const serveIndex = require("serve-index");
 const port = 8080 || process.env.port;
 const elapsedMax = 15000;
 const downlinkURL =
@@ -37,6 +38,12 @@ app.set("view engine", ejs);
 app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static(path.join(__dirname, "public")));
+app.use(
+  "/logs",
+  express.static("public/logs"),
+  serveIndex("public/logs", { icons: true })
+);
+
 app.use(express.json());
 app.use(cors());
 
@@ -235,6 +242,11 @@ app.get("/", (req, res) => {
 
   res.render("index.ejs");
 });
+
+// app.get("/logs", (req, res) => {
+//   console.log(savePath);
+//   res.sendFile(path.join(__dirname, "logs"));
+// });
 
 app.post("/cal", (req, res) => {
   console.log("calibrate Route: ", req.body);
