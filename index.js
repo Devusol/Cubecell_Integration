@@ -11,8 +11,7 @@ const ejs = require("ejs");
 const nodemailer = require("nodemailer");
 const serveIndex = require("serve-index");
 const port = 3000 || process.env.port;
-const downlinkURL =
-  "https://console.helium.com/api/v1/down/67d97e64-2cbd-42b5-b11f-e5e4f99e2eed/dAdVXsOqN4P_P4EaKXSu3CbkQk1zLpeg/2d635b83-c1a8-48fa-a334-60a251c00697";
+const downlinkURL = "https://console.helium.com/api/v1/down/311eaf7b-0e70-4d85-8723-5345632c4b30/EZ6PaaSHDpi4g8CN9LATkcVhAK2KjCty";
 let server,
   io,
   count = 0,
@@ -52,6 +51,7 @@ app.get("/getLive", (req, res) => {
   console.log("getLive Route");
   let buff = Buffer.from("start");
   let base64data = buff.toString("base64");
+  clearDownlink();
   axios
     .post(downlinkURL, {
       payload_raw: base64data,
@@ -71,6 +71,7 @@ app.get("/stopLive", function (req, res) {
   console.log("stopLive Route");
   let buff = Buffer.from("stop");
   let base64data = buff.toString("base64");
+  clearDownlink();
   axios
     .post(downlinkURL, {
       payload_raw: base64data,
@@ -86,31 +87,33 @@ app.get("/stopLive", function (req, res) {
     });
 });
 
-app.get("/update", function (req, res) {
-  let buff = Buffer.from("update");
-  let base64data = buff.toString("base64");
-  axios
-    .post(downlinkURL, {
-      payload_raw: base64data,
-      port: 12,
-      confirmed: false
-    })
-    .then(function (response) {
-      console.log(response.data);
-      res.redirect("/");
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-});
+// app.get("/update", function (req, res) {
+//   let buff = Buffer.from("update");
+//   let base64data = buff.toString("base64");
+//   clearDownlink();
+//   axios
+//     .post(downlinkURL, {
+//       payload_raw: base64data,
+//       port: 12,
+//       confirmed: false
+//     })
+//     .then(function (response) {
+//       console.log(response.data);
+//       res.redirect("/");
+//     })
+//     .catch(function (error) {
+//       console.log(error);
+//     });
+// });
 
 app.get("/tare", function (req, res) {
   let buff = Buffer.from("tare");
   let base64data = buff.toString("base64");
+  clearDownlink();
   axios
     .post(downlinkURL, {
       payload_raw: base64data,
-      port: 7,
+      port: 15,
       confirmed: false
     })
     .then(function (response) {
@@ -159,7 +162,7 @@ app.post("/", (req, res) => {
         makeCSV += `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)},\n`;
         if (index == 32) {
           io.emit("status-stamp", {
-            status: `${new Date(buffCSV.readUInt32LE()).toLocaleString()}`
+            status: `${new Date(buffCSV.readUInt32LE() * 1000).toUTCString()}`
           });
           io.emit("live-data", {
             lc1: `${buffCSV.readInt16LE(4)}.${buffCSV.readInt8(6)}`,
@@ -181,12 +184,9 @@ app.post("/", (req, res) => {
   } else if (req.body.port == 3) {
     console.log("it's status report");
     const batt = bufferObj.readUInt16BE();
-    const sysTime = bufferObj.readUInt32BE(2);
+    const sysTime = new Date(bufferObj.readUInt32BE(2)).toUTCString();
     const degF = bufferObj.readUInt8(6);
-    const sysDate = Date(sysTime);
-    console.log(sysDate);
-    let paramsData = `Batt: ${batt / 1000
-      } V Sys Time: ${sysTime} Sys Temp: ${degF}`;
+    let paramsData = `Batt: ${batt / 1000} V Sys Time: ${sysTime} Sys Temp: ${degF}`;
 
     io.emit("status-stamp", {
       status: paramsData
@@ -233,7 +233,6 @@ app.get("/", (req, res) => {
   let buffStore = buff.toString("hex");
 
   let saveIt = buff.join(",");
-  // console.log(saveIt);
   const batt = buff.readUInt16BE();
   const sysTime = buff.readUInt32BE(2);
   const degF = buff.readUInt8(6);
@@ -241,20 +240,11 @@ app.get("/", (req, res) => {
   res.render("index.ejs");
 });
 
-// app.get("/logs", (req, res) => {
-//   console.log(savePath);
-//   res.sendFile(path.join(__dirname, "logs"));
-// });
-
 app.post("/cal", (req, res) => {
   console.log("calibrate Route: ", req.body);
   let buff = Buffer.from("calibrate");
   let base64data = buff.toString("base64");
   let calPort = 11;
-
-  //if (check for req.body.values) then set port value
-  //either 11,12,13,14 to calibrate 1, 2, 3, 4
-
   axios
     .post(downlinkURL, {
       payload_raw: base64data,
@@ -276,13 +266,6 @@ const parseRawData = () => {
       console.error(err);
       return;
     }
-    //  console.log(data);
-    // fs.appendFile("./rawdata.dat", buffStore + "\n", (err) => {
-    //   if (err) return console.log(err);
-    //   console.log("Saving Data");
-    // });
-    //parseRawData();
-    // console.log(buffStore);
   });
 };
 
@@ -291,15 +274,6 @@ const degFahrenheit = (temp) => {
 };
 
 const sendTime = () => {
-  // timerec = Math.round(Date.now() / 1000);
-  // console.log(timerec);
-  // let buff = Buffer.alloc(4);
-  // buff.writeUInt32BE(timerec + 7);
-  // let base64data = buff.toString("base64");
-  // let t = 1656857613;
-  // let tBuf = Buffer.alloc(4);
-  // tBuf.writeUInt32BE(t);
-  // console.log(tBuf);
 };
 
 const sendMail = (emailMessage) => {
@@ -328,3 +302,20 @@ const sendMail = (emailMessage) => {
     console.log("Message sent: %s", mail.messageId);
   });
 };
+
+async function clearDownlink() {
+  let buff = Buffer.from(clearHeliumDownlink);
+  let base64data = buff.toString("base64");
+  await axios
+    .post(downlinkURL, {
+      payload_raw: base64data,
+      port: 16,
+      confirmed: false
+    })
+    .then(function (response) {
+      console.log(response.data);
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+}
