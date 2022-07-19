@@ -152,14 +152,25 @@ app.post("/", (req, res) => {
         console.log(buffCSV);
         // const sysTime = buffCSV.readUInt32LE() * 1000;
         // var timestamp = new Date(1657335808 * 1000);
-        makeCSV += `${buffCSV.readUInt32LE()}, `;
-        makeCSV += `${buffCSV.readInt16LE(4)}.${buffCSV.readInt8(6)}, `;
-        makeCSV += `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)}, `;
-        makeCSV += `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)}, `;
+        makeCSV += `${buffCSV.readUInt32LE()},`;
+        makeCSV += `${buffCSV.readInt16LE(4)}.${buffCSV.readInt8(6)},`;
+        makeCSV += `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)},`;
+        makeCSV += `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)},`;
         makeCSV += `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)},\n`;
+        if (index == 32) {
+          io.emit("status-stamp", {
+            status: `${new Date(buffCSV.readUInt32LE()).toLocaleString()}`
+          });
+          io.emit("live-data", {
+            lc1: `${buffCSV.readInt16LE(4)}.${buffCSV.readInt8(6)}`,
+            lc2: `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)}`, lc3: `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)}`,
+            lc4: `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)}`
+          });
+        }
         index += 16;
       }
     }
+
     const date = new Date();
     let filename = `/${date.toJSON().slice(0, 10)}_${date.getHours()}_${date.getMinutes()}_${date.getSeconds()}.csv`
     fs.appendFile(savePath + filename, makeCSV, (err) => {
