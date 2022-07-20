@@ -160,13 +160,14 @@ app.post("/", (req, res) => {
         makeCSV += `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)},`;
         makeCSV += `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)},`;
         makeCSV += `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)},\n`;
-        if (index == 32) {
+        if (index == 64) {
           io.emit("status-stamp", {
             status: `${new Date(buffCSV.readUInt32LE() * 1000).toUTCString()}`
           });
           io.emit("live-data", {
             lc1: `${buffCSV.readInt16LE(4)}.${buffCSV.readInt8(6)}`,
-            lc2: `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)}`, lc3: `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)}`,
+            lc2: `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)}`, 
+            lc3: `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)}`,
             lc4: `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)}`
           });
         }
