@@ -11,7 +11,8 @@ const ejs = require("ejs");
 const nodemailer = require("nodemailer");
 const serveIndex = require("serve-index");
 const port = 3000 || process.env.port;
-const downlinkURL = "https://console.helium.com/api/v1/down/311eaf7b-0e70-4d85-8723-5345632c4b30/EZ6PaaSHDpi4g8CN9LATkcVhAK2KjCty";
+const downlinkURL =
+  "https://console.helium.com/api/v1/down/311eaf7b-0e70-4d85-8723-5345632c4b30/EZ6PaaSHDpi4g8CN9LATkcVhAK2KjCty";
 let server,
   io,
   count = 0,
@@ -176,7 +177,12 @@ app.post("/", (req, res) => {
     }
 
     const date = new Date();
-    let filename = `/${date.toJSON().slice(0, 10)}_${date.getHours()}_${date.getMinutes()}_${date.getSeconds()}.csv`
+    let filename = `/${date
+      .toJSON()
+      .slice(
+        0,
+        10
+      )}_${date.getHours()}_${date.getMinutes()}_${date.getSeconds()}.csv`;
     fs.appendFile(savePath + filename, makeCSV, (err) => {
       if (err) return console.log(err);
       // console.log("Saving Data");
@@ -185,9 +191,13 @@ app.post("/", (req, res) => {
   } else if (req.body.port == 3) {
     console.log("it's status report");
     const batt = bufferObj.readUInt16BE();
-    const sysTime = new Date(bufferObj.readUInt32BE(2) * 1000).toUTCString();
+    const sysTime = new Date(bufferObj.readUInt32BE(2) * 1000)
+      .toUTCString()
+      .replace("GMT", "EST");
     const degF = bufferObj.readUInt8(6);
-    let paramsData = `Batt: ${batt / 1000} V Sys Time: ${sysTime} Sys Temp: ${degF}`;
+    let paramsData = `Batt: ${
+      batt / 1000
+    } V Sys Time: ${sysTime} Sys Temp: ${degF}`;
 
     io.emit("status-stamp", {
       status: paramsData
@@ -274,8 +284,7 @@ const degFahrenheit = (temp) => {
   return ((temp / 10) * 1.8 + 32).toFixed(2);
 };
 
-const sendTime = () => {
-};
+const sendTime = () => {};
 
 const sendMail = (emailMessage) => {
   let mailOptions = {
