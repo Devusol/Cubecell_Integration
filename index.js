@@ -18,7 +18,8 @@ let server,
   count = 0,
   timerec = Date.now(),
   clearHeliumDownlink = "__clear_downlink_queue__",
-  savePath = path.join(__dirname, "public/logs");
+  savePath = path.join(__dirname, "public/logs"),
+  filename;
 
 server = http.Server(app);
 server.listen(port);
@@ -127,6 +128,7 @@ app.get("/tare", function (req, res) {
 });
 
 app.post("/", (req, res) => {
+  // timerec = Date.now();
   console.log(req.body.payload);
   const bufferObj = Buffer.from(req.body.payload, "base64");
   const buffCSV = Buffer.alloc(16);
@@ -135,10 +137,14 @@ app.post("/", (req, res) => {
   if (req.body.port == 2) {
     console.log("it's data, lets save it to a file");
     //  console.log(bufferObj.toString("HEX"));
-    fs.appendFile("rawdata.dat", bufferObj.toString("HEX") + "\n", (err) => {
-      if (err) return console.log(err);
-      // console.log("Saving Data");
-    });
+    fs.appendFile(
+      savePath + "/rawdata.dat",
+      JSON.stringify(req.body) + "\n",
+      (err) => {
+        if (err) return console.log(err);
+        // console.log("Saving Data");
+      }
+    );
 
     // const dataStr = fs.readFileSync(savePath, "utf8");
     // const dataBuff = Buffer.from(dataStr, "HEX");
@@ -167,7 +173,7 @@ app.post("/", (req, res) => {
           });
           io.emit("live-data", {
             lc1: `${buffCSV.readInt16LE(4)}.${buffCSV.readInt8(6)}`,
-            lc2: `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)}`, 
+            lc2: `${buffCSV.readInt16LE(7)}.${buffCSV.readInt8(9)}`,
             lc3: `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)}`,
             lc4: `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)}`
           });
@@ -176,13 +182,17 @@ app.post("/", (req, res) => {
       }
     }
 
-    const date = new Date();
-    let filename = `/${date
-      .toJSON()
-      .slice(
-        0,
-        10
-      )}_${date.getHours()}_${date.getMinutes()}_${date.getSeconds()}.csv`;
+    if (Date.now() - timerec > 15000) {
+      const date = new Date();
+      timerec = Date.now();
+      filename = `/${date
+        .toJSON()
+        .slice(
+          0,
+          10
+        )}__${date.getUTCHours()}-${date.getUTCMinutes()}-${date.getUTCSeconds()}_UTC.csv`;
+    }
+
     fs.appendFile(savePath + filename, makeCSV, (err) => {
       if (err) return console.log(err);
       // console.log("Saving Data");
