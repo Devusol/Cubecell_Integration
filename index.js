@@ -182,7 +182,7 @@ app.post("/", (req, res) => {
       }
     }
 
-    if (Date.now() - timerec > 15000) {
+    if (Date.now() - timerec > 30000) {
       const date = new Date();
       timerec = Date.now();
       filename = `/${date
