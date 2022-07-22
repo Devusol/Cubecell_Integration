@@ -192,12 +192,12 @@ app.post("/", (req, res) => {
           10
         )}__${date.getUTCHours()}-${date.getUTCMinutes()}-${date.getUTCSeconds()}_UTC.csv`;
     }
-    else {
-      fs.appendFile(savePath + filename, makeCSV, (err) => {
-        if (err) return console.log(err);
-        // console.log("Saving Data");
-      });
-    }
+
+    fs.appendFile(savePath + filename, makeCSV, (err) => {
+      if (err) return console.log(err);
+      // console.log("Saving Data");
+    });
+    timerec = Date.now();
     console.log(makeCSV);
   } else if (req.body.port == 3) {
     console.log("it's status report");
@@ -206,8 +206,9 @@ app.post("/", (req, res) => {
       .toUTCString()
       .replace("GMT", "EST");
     const degF = bufferObj.readUInt8(6);
-    let paramsData = `Batt: ${batt / 1000
-      } V Sys Time: ${sysTime} Sys Temp: ${degF}`;
+    let paramsData = `Batt: ${
+      batt / 1000
+    } V Sys Time: ${sysTime} Sys Temp: ${degF}`;
 
     io.emit("status-stamp", {
       status: paramsData
@@ -294,7 +295,7 @@ const degFahrenheit = (temp) => {
   return ((temp / 10) * 1.8 + 32).toFixed(2);
 };
 
-const sendTime = () => { };
+const sendTime = () => {};
 
 const sendMail = (emailMessage) => {
   let mailOptions = {
