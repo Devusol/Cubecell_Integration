@@ -190,7 +190,7 @@ app.post("/", (req, res) => {
         .slice(
           0,
           10
-        )}__${date.getUTCHours()}-${date.getUTCMinutes()}-${date.getUTCSeconds()}_UTC.csv`;
+        )}__${date.getUTCHours()}-${date.getUTCMinutes()}-${date.getUTCSeconds()}Z__${date.getUTCHours()}.csv`;
     }
 
     fs.appendFile(savePath + filename, makeCSV, (err) => {
