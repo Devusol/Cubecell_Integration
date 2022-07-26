@@ -183,16 +183,18 @@ app.post("/", (req, res) => {
     }
 
     if (Date.now() - timerec > 30000) {
-      const date = new Date();
+      // const date = new Date();
       timerec = Date.now();
-      filename = `/${date
-        .toJSON()
-        .slice(
-          0,
-          10
-        )}__${date.getUTCHours()}-${date.getUTCMinutes()}-${date.getUTCSeconds()}Z__${date.getUTCHours()}.csv`;
+      filename = `/${timerec}Z.csv`;
+      console.log("filemane", filename);
+      // filename = `/${date
+      //   .toJSON()
+      //   .slice(
+      //     0,
+      //     10
+      //   )}__${date.getUTCHours()}-${date.getUTCMinutes()}-${date.getUTCSeconds()}Z__${date.getUTCHours()}.csv`;
     }
-
+    if (!filename) filename = `/${Date.now()}Z.csv`
     fs.appendFile(savePath + filename, makeCSV, (err) => {
       if (err) return console.log(err);
       // console.log("Saving Data");
@@ -200,16 +202,18 @@ app.post("/", (req, res) => {
     timerec = Date.now();
     console.log(makeCSV);
   } else if (req.body.port == 3) {
-    console.log("it's status report");
+    console.log("it's status report", bufferObj);
     const batt = bufferObj.readUInt16BE();
-    const sysTime = new Date(bufferObj.readUInt32BE(2) * 1000)
-      .toUTCString()
-      .replace("GMT", "EST");
+    const sysTime = new Date(bufferObj.readUInt32BE(2) * 1000).toUTCString();
     const degF = bufferObj.readUInt8(6);
-    let paramsData = `Batt: ${
-      batt / 1000
-    } V Sys Time: ${sysTime} Sys Temp: ${degF}`;
-
+    const latINT = bufferObj.readInt16BE(7);
+    const latFLOAT = bufferObj.readInt16BE(9);
+    const lonINT = bufferObj.readInt16BE(11);
+    const lonFLOAT = bufferObj.readInt16BE(13);
+    const debugFlag = bufferObj.readUInt8(15);
+    let paramsData = `Batt: ${batt / 1000
+      } V Sys Time: ${sysTime} Sys Temp: ${degF} Latitude ${latINT}.${latFLOAT} Longitude ${lonINT}.${lonFLOAT} debug: ${debugFlag}`;
+    console.log(paramsData);
     io.emit("status-stamp", {
       status: paramsData
     });
@@ -295,7 +299,7 @@ const degFahrenheit = (temp) => {
   return ((temp / 10) * 1.8 + 32).toFixed(2);
 };
 
-const sendTime = () => {};
+const sendTime = () => { };
 
 const sendMail = (emailMessage) => {
   let mailOptions = {
