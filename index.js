@@ -10,7 +10,7 @@ const fs = require("fs");
 const ejs = require("ejs");
 const nodemailer = require("nodemailer");
 const serveIndex = require("serve-index");
-const port = 3000 || process.env.port;
+const port = process.env.port || 3000; 
 const downlinkURL =
   "https://console.helium.com/api/v1/down/311eaf7b-0e70-4d85-8723-5345632c4b30/EZ6PaaSHDpi4g8CN9LATkcVhAK2KjCty";
 let server,
