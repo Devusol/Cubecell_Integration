@@ -304,7 +304,8 @@ const sendTime = () => { };
 const sendMail = (emailMessage) => {
   let mailOptions = {
     from: "nodemailer@devusol.com",
-    to: "flexmethods@gmail.com",
+    to: "dg@beachformer.com, tk@beachformer.com",
+    cc: "sean@devusol.com",
     subject: "Waverider Lives",
     text: emailMessage
   };
