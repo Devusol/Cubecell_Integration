@@ -35,6 +35,10 @@
                     <p class="card-text" id="signal"></p>
 
                 </div>
+                <p class="px-3">SNR ranges between -20 and +10 and the larger the number (closer to 10 dB) the better.</p>
+                <p class="px-3">RSSI the larger the number (closer to 0), the better the signal.</p>
+                
+
             </div>
             <div class="row m-5">
                 <!-- <div class="col-lg-6"> -->
@@ -188,7 +192,12 @@
             document.querySelector("#lc4").innerHTML = message.lc4;
         })
         socket.on('signal-strength', (message)=>{
-            document.querySelector("#signal").innerHTML = message.conn;
+            console.log(message)
+            document.querySelector("#signal").innerHTML = 
+            `heard by: ${message.conn.name}<br>
+             RSSI: ${message.conn.rssi}<br>
+             SNR: ${message.conn.snr}<br>
+             Spread Factor: ${message.conn.spreading}`;
         })
     </script>
     </body>
