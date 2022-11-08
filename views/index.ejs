@@ -13,13 +13,13 @@
 
                     </form>
                 </div>
-                <div class="col-lg-6">
+                <!-- <div class="col-lg-6">
                     <form action="/stopLive">
 
                         <button type="submit" class="btn btn-secondary w-100 mb-3">End</button>
 
                     </form>
-                </div>
+                </div> -->
             </div>
 
             <div class="card m-5 ">
@@ -29,7 +29,13 @@
 
                 </div>
             </div>
+            <div class="card m-5 ">
+                <div class="card-body ">
+                    <h5 class="card-title">Signal</h5>
+                    <p class="card-text" id="signal"></p>
 
+                </div>
+            </div>
             <div class="row m-5">
                 <!-- <div class="col-lg-6"> -->
                 <h4 class="mt-3">LOAD CELL WEIGHT</h4>
@@ -176,11 +182,13 @@
             document.querySelector("#timeStamp").innerHTML = message.status;
         });
         socket.on('live-data', (message) => {
-            document.querySelector("#conn").innerHTML = message.conn;
             document.querySelector("#lc1").innerHTML = message.lc1;
             document.querySelector("#lc2").innerHTML = message.lc2;
             document.querySelector("#lc3").innerHTML = message.lc3;
             document.querySelector("#lc4").innerHTML = message.lc4;
+        })
+        socket.on('signal-strength', (message)=>{
+            console.log(message);
         })
     </script>
     </body>

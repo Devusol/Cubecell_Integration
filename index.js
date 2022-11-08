@@ -221,8 +221,8 @@ app.post("/", (req, res) => {
     sendMail(paramsData);
   } else if (req.body.port == 4) {
 
-    io.emit("live-data", {
-      conn: "Disconnect"
+    io.emit("signal-strength", {
+      conn: req.body.hotspots
     });
 
     console.log("it's live data");
