@@ -10,7 +10,7 @@ const fs = require("fs");
 const ejs = require("ejs");
 const nodemailer = require("nodemailer");
 const serveIndex = require("serve-index");
-const port = process.env.port || 3000; 
+const port = process.env.port || 3000;
 const downlinkURL =
   "https://console.helium.com/api/v1/down/311eaf7b-0e70-4d85-8723-5345632c4b30/EZ6PaaSHDpi4g8CN9LATkcVhAK2KjCty";
 let server,
@@ -129,10 +129,13 @@ app.get("/tare", function (req, res) {
 
 app.post("/", (req, res) => {
   // timerec = Date.now();
-  console.log(req.body.payload);
+
   const bufferObj = Buffer.from(req.body.payload, "base64");
   const buffCSV = Buffer.alloc(16);
   // console.log(bufferObj);
+  io.emit("signal-strength", {
+    conn: req.body.hotspots[0]
+  });
 
   if (req.body.port == 2) {
     console.log("it's data, lets save it to a file");
@@ -177,6 +180,9 @@ app.post("/", (req, res) => {
             lc3: `${buffCSV.readInt16LE(10)}.${buffCSV.readInt8(12)}`,
             lc4: `${buffCSV.readInt16LE(13)}.${buffCSV.readInt8(15)}`
           });
+          // io.emit("signal-strength", {
+          //   conn: req.body.hotspots[0]
+          // });
         }
         index += 16;
       }
@@ -217,13 +223,15 @@ app.post("/", (req, res) => {
     io.emit("status-stamp", {
       status: paramsData
     });
+    // io.emit("signal-strength", {
+    //   conn: req.body.hotspots[0]
+    // });
 
     sendMail(paramsData);
   } else if (req.body.port == 4) {
-
-    io.emit("signal-strength", {
-      conn: req.body.hotspots[0]
-    });
+    // io.emit("signal-strength", {
+    //   conn: req.body.hotspots[0]
+    // });
 
     const sysTime = bufferObj.readUInt32LE();
     const a = bufferObj.readUInt16BE(4);
