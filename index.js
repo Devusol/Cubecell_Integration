@@ -220,6 +220,11 @@ app.post("/", (req, res) => {
 
     sendMail(paramsData);
   } else if (req.body.port == 4) {
+
+    io.emit("live-data", {
+      conn: "Disconnect"
+    });
+
     console.log("it's live data");
     console.log(req.body);
     const sysTime = bufferObj.readUInt32LE();

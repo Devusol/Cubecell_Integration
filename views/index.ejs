@@ -9,7 +9,7 @@
                 <div class="col-lg-6">
                     <form action="/getLive">
 
-                        <button type="submit" class="btn btn-primary w-100 mb-3">Connect</button>
+                        <button type="submit" id="conn" class="btn btn-primary w-100 mb-3">Connect</button>
 
                     </form>
                 </div>
@@ -144,11 +144,11 @@
                         <!-- </form> -->
                     </div>
                     <!-- <div class="col-lg-6"> -->
-                        <form class="col-lg-6" action="/tare">
-                            <h4 class="d-flex justify-content-center w-100">TARE</h4>
-                            <button type="submit" class="btn btn-primary w-100 mb-3">Tare All</button>
+                    <form class="col-lg-6" action="/tare">
+                        <h4 class="d-flex justify-content-center w-100">TARE</h4>
+                        <button type="submit" class="btn btn-primary w-100 mb-3">Tare All</button>
 
-                        </form>
+                    </form>
                     <!-- </div> -->
                 </div>
             </div>
@@ -176,6 +176,7 @@
             document.querySelector("#timeStamp").innerHTML = message.status;
         });
         socket.on('live-data', (message) => {
+            document.querySelector("#conn").innerHTML = message.conn;
             document.querySelector("#lc1").innerHTML = message.lc1;
             document.querySelector("#lc2").innerHTML = message.lc2;
             document.querySelector("#lc3").innerHTML = message.lc3;
