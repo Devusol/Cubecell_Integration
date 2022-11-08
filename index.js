@@ -221,6 +221,7 @@ app.post("/", (req, res) => {
     sendMail(paramsData);
   } else if (req.body.port == 4) {
     console.log("it's live data");
+    console.log(req.body);
     const sysTime = bufferObj.readUInt32LE();
     const a = bufferObj.readUInt16BE(4);
     const aa = bufferObj.readUInt8(6);
