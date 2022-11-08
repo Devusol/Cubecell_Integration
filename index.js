@@ -226,7 +226,7 @@ app.post("/", (req, res) => {
     });
 
     console.log("it's live data");
-    console.log(req.body);
+    console.log(req.body.hotspots);
     const sysTime = bufferObj.readUInt32LE();
     const a = bufferObj.readUInt16BE(4);
     const aa = bufferObj.readUInt8(6);
